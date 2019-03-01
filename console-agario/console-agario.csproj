@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{6D737200-5B1A-4E37-95D7-25EECFC5B17B}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>Agario</RootNamespace>
-    <AssemblyName>Agario</AssemblyName>
+    <RootNamespace>console_agario</RootNamespace>
+    <AssemblyName>console-agario</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Agario
+namespace console_agario
 {
     class Player : Orb
     {

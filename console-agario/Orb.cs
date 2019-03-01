@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using gui;
 
-namespace Agario
+namespace console_agario
 {
     class Orb
     {

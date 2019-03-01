@@ -6,11 +6,11 @@ using System.Text;
 using System.Threading;
 using gui;
 
-namespace Agario
+namespace console_agario
 {
-    class NigaWhat : Box
+    class BlankBox : Box
     {
-        public NigaWhat(Window window, BoxSize size, char[] framebuffer) : base(window, size, framebuffer)
+        public BlankBox(Window window, BoxSize size, char[] framebuffer) : base(window, size, framebuffer)
         {
 
         }
@@ -96,7 +96,7 @@ namespace Agario
 
             Screen = MainWin._framebuffer;
 
-            Window = new NigaWhat(MainWin, MainWin.Max, Screen);
+            Window = new BlankBox(MainWin, MainWin.Max, Screen);
             Window.OffsetX = 35;
             Window.OffsetX = 35;
             
