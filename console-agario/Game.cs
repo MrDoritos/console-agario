@@ -99,7 +99,9 @@ namespace console_agario
             Window = new BlankBox(MainWin, MainWin.Max, Screen);
             Window.OffsetX = 35;
             Window.OffsetX = 35;
-            
+
+            Map = new Map(MapSizeX);
+
             //bot = new Player("Bot 1", 5);
             Reset();
             
@@ -112,6 +114,8 @@ namespace console_agario
 
         public static MainWin MainWin;
         public Box Window;
+        public Camera Camera;
+        public Map Map;
 
         public char[] Screen;
 
@@ -123,8 +127,8 @@ namespace console_agario
         public UserPlayer user;
         public Player[] players;
 
-        public static int MapSizeX = 70;
-        public static int MapSizeY = 70;
+        public const int MapSizeX = 100;
+        public const int MapSizeY = 100;
 
         public void Reset()
         {
@@ -137,6 +141,8 @@ namespace console_agario
             {
                 players[i] = new Player($"Bot {i}", 10, 20, 20);
             }
+            Camera = new Camera(Window, user, Map, Screen);
+            //UpdateCamera(Window, user);
         }
 
         public void StartUserInputThread()
@@ -186,89 +192,93 @@ namespace console_agario
             for (int i = 1; i < players.Length; i++)
             {                
                 if (!(cur = players[i]).disposed)
-                    cur.DrawTo(Window, scale, 'b');
+                    cur.DrawTo(Window, Camera, 'b');
             }
-            user.DrawTo(Window, scale, 'u');
+            user.DrawTo(Window, Camera, 'u');
             Window.Set(user.Score.ToString(), 0, 0);
+            Window.Set(user.PositionX.ToString(), 0, 1);
+            Window.Set(user.PositionY.ToString(), 4, 1);
+            Window.Set(Camera.PositionX.ToString(), 0, 2);
+            Window.Set(Camera.PositionY.ToString(), 4, 2);
             //Raster
             //Obsolete, use a console screen buffer
             //MainWin.Draw();
             MainWin.Write();
         }
-
-        private void UpdateCamera(BoxSize screen, UserPlayer player)
-        {
-            float scale = player.GetScale();
-            //The size should be a constant half of the screen
-            //The diameter
-            //int size = (int)Math.Round(screen.GetScaleX(0.5f) / scale);
-            //int size = player.Score;
-            //int radius = size / 2;
-            int size = player.Score * 2;
-            int radius = player.Score;
-            int posX = player.PositionX, posY = player.PositionY;
-            int maxX = screen.SizeX, maxY = screen.SizeY;
-            int cameraX = screen.OffsetX, cameraY = screen.OffsetY;
-            int mapMaxX = MapSizeX, mapMaxY = MapSizeY;
-            int cameraCenterX = posX + size, cameraCenterY = posY + size;
-            int cameraNewX = posX - radius, cameraNewY = posY - radius;
-            int cameraOtherNewX = posX + maxX, cameraOtherNewY = posY + maxY;
+        
+        //private void UpdateCamera(BoxSize screen, UserPlayer player)
+        //{
+        //    float scale = player.GetScale();
+        //    //The size should be a constant half of the screen
+        //    //The diameter
+        //    //int size = (int)Math.Round(screen.GetScaleX(0.5f) / scale);
+        //    //int size = player.Score;
+        //    //int radius = size / 2;
+        //    int size = player.Score * 2;
+        //    int radius = player.Score;
+        //    int posX = player.PositionX, posY = player.PositionY;
+        //    int maxX = screen.SizeX, maxY = screen.SizeY;
+        //    int cameraX = screen.OffsetX, cameraY = screen.OffsetY;
+        //    int mapMaxX = MapSizeX, mapMaxY = MapSizeY;
+        //    int cameraCenterX = posX + size, cameraCenterY = posY + size;
+        //    int cameraNewX = posX - radius, cameraNewY = posY - radius;
+        //    int cameraOtherNewX = posX + maxX, cameraOtherNewY = posY + maxY;
                         
-            //Free floating X axis
-            if (cameraNewX > 0 && cameraOtherNewX < mapMaxX + size + (size / scale))
-            {
-                screen.OffsetX = cameraNewX;
-            }
-            //Top-left (Top left working)
-            else
-                if (cameraNewX <= 0)
-            {
-                screen.OffsetX = 0;
-            }
-            //Lower-left (Not working)
-            /*
-            else
-                if (cameraCenterX >= mapMaxX - size)
-            {
-                screen.OffsetX = mapMaxX - maxX;
-            }
-            */
+        //    //Free floating X axis
+        //    if (cameraNewX > 0 && cameraOtherNewX < mapMaxX)
+        //    {
+        //        screen.OffsetX = (int)Math.Round(cameraNewX * scale);
+        //    }
+        //    //Top-left (Top left working)
+        //    else
+        //        if (cameraNewX <= 0)
+        //    {
+        //        screen.OffsetX = 0;
+        //    }
+        //    //Lower-left (Not working)
+        //    /*
+        //    else
+        //        if (cameraCenterX >= mapMaxX - size)
+        //    {
+        //        screen.OffsetX = mapMaxX - maxX;
+        //    }
+        //    */
 
-            //Free floating Y axis
-            if (cameraNewY > 0 && cameraOtherNewY < mapMaxY + size + (size / scale))
-            {
-                screen.OffsetY = cameraNewY;
-            }
-            //Top-left
-            else
-                if (cameraNewY <= 0)
-            {
-                screen.OffsetY = 0;
-            }
+        //    //Free floating Y axis
+        //    if (cameraNewY > 0 && cameraOtherNewY < mapMaxY)
+        //    {
+        //        screen.OffsetY = (int)Math.Round(cameraNewY * scale);
+        //    }
+        //    //Top-left
+        //    else
+        //        if (cameraNewY <= 0)
+        //    {
+        //        screen.OffsetY = 0;
+        //    }
 
-            /*
-            //Y axis
-            if (posY + size < mapMaxY - maxY)
-            {
-                screen.OffsetY = posY - size;
-            }
-            else
-            {
-                //Near Y bounds in positive
-                screen.OffsetY = mapMaxY - maxY;
-            }   
-            //X axis
-            if (posX + size < mapMaxX - maxX)
-            {
-                screen.OffsetX = posX - size;
-            }
-            else
-            {
-                //Near X bounds in positive
-                screen.OffsetX = mapMaxX - maxX;
-            }
-            */
-        }
+        //    /*
+        //    //Y axis
+        //    if (posY + size < mapMaxY - maxY)
+        //    {
+        //        screen.OffsetY = posY - size;
+        //    }
+        //    else
+        //    {
+        //        //Near Y bounds in positive
+        //        screen.OffsetY = mapMaxY - maxY;
+        //    }   
+        //    //X axis
+        //    if (posX + size < mapMaxX - maxX)
+        //    {
+        //        screen.OffsetX = posX - size;
+        //    }
+        //    else
+        //    {
+        //        //Near X bounds in positive
+        //        screen.OffsetX = mapMaxX - maxX;
+        //    }
+        //    */
+        //}
 
         private void DrawPause()
         {
@@ -347,7 +357,8 @@ namespace console_agario
             if (user.HandleKeyPress(lastKey) || DoCollisionDetection())
             {
                 //If any movement happened, update the camera position (also do when size increase)
-                UpdateCamera(Window, user);
+                //UpdateCamera(Window, user);
+                Camera.UpdateView();
                 if (user.disposed)
                 {
                     Reset();

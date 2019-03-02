@@ -11,7 +11,7 @@ namespace console_agario
     {
         static void Main(string[] args)
         {
-            Game game = new Game(40, 40);
+            Game game = new Game(60, 60);
             game.GameUpdateThread();
         }
     }

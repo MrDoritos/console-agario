@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -59,30 +60,32 @@ namespace console_agario
         /// Draws the orb to the screen (prolly doesn't work)
         /// </summary>
         /// <param name="screen">Framebuffer</param>
-        /// <param name="scale">The scale of score to size of the orb</param>
-        public void DrawTo(Box screen, float scale, char border)
+        public void DrawTo(Box screen, Camera camera, char border)
         {
+
+            float scale = camera.Scale;
             //Our score is the diameter / scale
-            double diameter = Score * scale;
-            double radius = diameter / 2;
-            double step = 2 * Math.PI / (diameter * 4);
+            double diameter = Diameter;
+            double radius = Radius;
+            double step = ((diameter * scale) / (5.6d * 2 * Math.PI));
             double theta = 0.0d;
             double doublePi = 2 * Math.PI;
             //Here's where we need to do some work (fuck)
-            int centerX = (int)Math.Round(PositionX + radius), centerY = (int)Math.Round(PositionY + radius);
+            int centerX = (int)Math.Round((PositionX + radius)), centerY = (int)Math.Round((PositionY + radius));
 
             int x, y;
             int boundsX = screen.SizeX/* + screen.OffsetX*/, boundsY = screen.SizeY/* + screen.OffsetY*/;
 
             for (theta = 0.0d; theta < doublePi; theta += step)
             {
-                x = (int)Math.Round(centerX + radius * Math.Cos(theta)) - screen.OffsetX;
-                y = (int)Math.Round(centerY - radius * Math.Sin(theta)) - screen.OffsetY;
+                x = (int)Math.Round(centerX + radius * Math.Cos(theta)) - camera.PositionX;
+                y = (int)Math.Round(centerY - radius * Math.Sin(theta)) - camera.PositionY;
                 if (x < boundsX && y < boundsY && y >= 0 && x >= 0)
                 {
                     screen._framebuffer[screen.Get(x, y)] = border;
                 }
             }
+
         }        
 
         /// <summary>
@@ -108,8 +111,22 @@ namespace console_agario
         }
 
         public string Name { get; protected set; }
+        //Matherooos
+        public float Radius { get => Diameter / 2; }
+        public float Diameter { get => Score / SingleMath.PI; }
+        public float CenterX { get => PositionX + Radius; }
+        public int CenterXAsInt { get => (int)Math.Round(CenterX); }
+        public float CenterY { get => PositionY + Radius; }
+        public int CenterYAsInt { get => (int)Math.Round(CenterY); }
+        public float MaxY { get => PositionY + Diameter; }
+        public int MaxYAsInt { get => (int)Math.Round(MaxY); }
+        public float MinY { get => PositionY; }
+        public int MinYAsInt { get => (int)Math.Round(MinY); }
+        public float MinX { get => PositionX; }
+        public int MinXAsInt { get => (int)Math.Round(MinX); }
+        public float MaxX { get => PositionX + Diameter; }
+        public int MaxXAsInt { get => (int)Math.Round(MaxX); }
 
-        
     }
     
     class UserPlayer : Player
@@ -118,6 +135,7 @@ namespace console_agario
         {
             _max = win.Max;
         }
+        //What
         private BoxSize _max;
         public float GetScale()
         {
@@ -176,10 +194,118 @@ namespace console_agario
             }
             return false;
         }
-
         public override void Update()
         {
             base.Update();
         }
+    }
+    class Map
+    {
+        public int Size { get; }
+        public Map(int size)
+        {
+            Size = size;
+        }
+    }
+    [StructLayout(LayoutKind.Sequential)]
+    public struct COORD
+    {
+        int X;
+        int Y;
+    }
+    class Camera
+    {
+        public Player Player { get; }
+        public Map Map { get; }
+        public char[] Framebuffer { get; }
+        public Box Screen { get; }
+        public Camera(Box screen, Player player, Map map, char[] framebuffer)
+        {
+            Player = player;
+            Map = map;
+            Framebuffer = framebuffer;
+            Screen = screen;
+
+            UpdateView();
+        }
+        public int PositionX { get => Screen.OffsetX; }
+        public int PositionY { get => Screen.OffsetY; }
+        public float AbsoluteMaxX { get => Player.MaxX + Player.Radius; }
+        public float AbsoluteMinX { get => Player.MinX - Player.Radius; }
+        public float AbsoluteMaxY { get => Player.MaxY + Player.Radius; }
+        public float AbsoluteMinY { get => Player.MinY - Player.Radius; }
+        public float Scale { get => SizeX / Screen.SizeX; }
+        //Assuming the player's location is not negative, this should work
+        public float MaxX
+        {
+            get
+            {
+                float absBottomX = AbsoluteMaxX;
+                float mapBottomX = Map.Size;
+                return absBottomX > mapBottomX ? mapBottomX : absBottomX;
+            }
+        }
+        public float MaxY
+        {
+            get
+            {
+                float absRightY = AbsoluteMaxY;
+                float mapRightY = Map.Size;
+                return absRightY > mapRightY ? mapRightY : absRightY;
+            }
+        }
+        public float MinX
+        {
+            get
+            {
+                float absTopX = AbsoluteMinX;
+                return absTopX >= 0 ? absTopX : 0;
+            }
+        }
+        public int MinXAsInt { get => (int)Math.Round(MinX); }
+        public float MinY
+        {
+            get
+            {
+                float absLeftY = AbsoluteMinY;
+                return absLeftY >= 0 ? absLeftY : 0;
+            }
+        }
+        public int MinYAsInt { get => (int)Math.Round(MinY); }
+        public float SizeX
+        {
+            get
+            {
+                return Player.Radius * 4;
+            }
+        }
+        public int SizeXAsInt { get => (int)Math.Round(SizeX); }
+        public float SizeY
+        {
+            get
+            {
+                return Player.Radius * 4;
+            }
+        }
+        public int SizeYAsInt { get => (int)Math.Round(SizeY); }
+        public void UpdateView()
+        {            
+            if (AbsoluteMaxX < Map.Size - Screen.SizeX)
+            {
+                Screen.OffsetX = MinXAsInt;
+            }
+            if (AbsoluteMaxY < Map.Size - Screen.SizeY)
+            {
+                Screen.OffsetY = MinYAsInt;
+            }
+        }
+        public unsafe char[] GetFrame()
+        {
+            throw new NotImplementedException();
+        }
+    }
+    public static class SingleMath
+    {
+        public const float PI = (float)Math.PI;
     }
 }
