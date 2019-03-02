@@ -86,8 +86,11 @@ namespace console_agario
     }
     class Game
     {
-        public Game(int width, int height)
+        public Game(int width, int height, int boardSize)
         {
+            MapSizeX = boardSize;
+            MapSizeY = boardSize;
+
             //o_O
             Console.WindowHeight = height;
             Console.WindowWidth = width;
@@ -127,8 +130,8 @@ namespace console_agario
         public UserPlayer user;
         public Player[] players;
 
-        public const int MapSizeX = 100;
-        public const int MapSizeY = 100;
+        public static int MapSizeX = 100;
+        public static int MapSizeY = 100;
 
         public void Reset()
         {

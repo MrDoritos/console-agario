@@ -44,16 +44,31 @@ namespace console_agario
        
         public bool Collides(Player player, Camera camera)
         {
-            int R0 = (int)(this.Radius / camera.Scale);
-            int R1 = (int)(player.Radius / camera.Scale);
-            int X0 = this.PositionX;
-            int X1 = player.PositionX;
-            int Y0 = this.PositionY;
-            int Y1 = player.PositionY;
+            return Collides(player.CenterXAsInt, player.CenterYAsInt, CenterXAsInt, CenterYAsInt, (int)(player.Radius / camera.Scale), (int)(Radius / camera.Scale));
+            int R0 = (int)(this.Radius);
+            int R1 = (int)(player.Radius);
+            int X0 = this.CenterXAsInt;
+            int X1 = player.CenterXAsInt;
+            int Y0 = this.CenterYAsInt;
+            int Y1 = player.CenterYAsInt;
             int F0 = ((R0 - R1) * (R0 - R1));
             int F1 = ((X0 - X1) * (X0 - X1)) + ((Y0 - Y1) * (Y0 - Y1));
             int F2 = ((R0 + R1) * (R0 + R1));
-            return (F0 <= F1 && F1 <= F2);
+            return (F0 <= F1 || F1 <= F2);
+        }
+
+        private static bool Collides(int x1, int y1, int x2,
+                      int y2, int r1, int r2)
+        {
+            int distSq = (x1 - x2) * (x1 - x2) +
+                         (y1 - y2) * (y1 - y2);
+            int radSumSq = (r1 + r2) * (r1 + r2);
+            if (distSq == radSumSq)
+                return false;
+            else if (distSq > radSumSq)
+                return false;
+            else
+                return true;
         }
 
         /// <summary>
@@ -70,8 +85,12 @@ namespace console_agario
             //double step = ((diameter * scale) / (5.6d * 2 * Math.PI));
             //TO-DO find better way to figure out the steps
             double step = 0.1d;
+            step = (diameter / (Math.PI * radius));
+            step *= 0.05d;
+            
             double theta = 0.0d;
             double doublePi = 2 * Math.PI;
+            
             //Here's where we need to do some work (fuck)
             int centerX = (int)Math.Round((((PositionX) + radius))), centerY = (int)Math.Round((((PositionY) + (radius))));
 
