@@ -194,18 +194,22 @@ namespace console_agario
                 if (!(cur = players[i]).disposed)
                     cur.DrawTo(Window, Camera, 'b');
             }
-            user.DrawTo(Window, Camera, 'u');
+            user.DrawTo(Window, Camera, 'u', true);
             Window.Set(user.Score.ToString(), 0, 0);
             Window.Set(user.PositionX.ToString(), 0, 1);
             Window.Set(user.PositionY.ToString(), 4, 1);
+            Window.Set(user.MaxX.ToString(), 4, 8, 1);
+            Window.Set(user.MaxY.ToString(), 4, 12, 1);
             Window.Set(Camera.PositionX.ToString(), 0, 2);
             Window.Set(Camera.PositionY.ToString(), 4, 2);
+            Window.Set(Camera.SizeXAsInt.ToString(), 4, 8, 2);
+            Window.Set(user.Diameter.ToString(), 4, 12, 2);
             //Raster
             //Obsolete, use a console screen buffer
             //MainWin.Draw();
             MainWin.Write();
         }
-        
+
         //private void UpdateCamera(BoxSize screen, UserPlayer player)
         //{
         //    float scale = player.GetScale();
@@ -223,7 +227,7 @@ namespace console_agario
         //    int cameraCenterX = posX + size, cameraCenterY = posY + size;
         //    int cameraNewX = posX - radius, cameraNewY = posY - radius;
         //    int cameraOtherNewX = posX + maxX, cameraOtherNewY = posY + maxY;
-                        
+
         //    //Free floating X axis
         //    if (cameraNewX > 0 && cameraOtherNewX < mapMaxX)
         //    {
@@ -331,7 +335,7 @@ namespace console_agario
                 for (int b = i + 1; b < count; b++)
                 {
                     P1 = players[b];
-                    if (P0.Collides(P1))
+                    if (P0.Collides(P1, Camera))
                     {
                         if (res = (P0 > P1 || P0 < P1))
                         {

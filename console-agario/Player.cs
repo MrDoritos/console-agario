@@ -31,7 +31,7 @@ namespace console_agario
         
         public bool OutOfBounds(int x, int y)
         {
-            return !(x >= 0 && y >= 0 && Game.MapSizeX > x + Score && Game.MapSizeY > y + Score);
+            return !(x >= 0 && y >= 0 && Game.MapSizeX - 1 > x + Diameter && Game.MapSizeY - 1 > y + Diameter);
         }
         public static bool operator> (Player player1, Player player2)
         {
@@ -42,10 +42,10 @@ namespace console_agario
             return player1.Score < player2.Score;
         }
        
-        public bool Collides(Player player)
+        public bool Collides(Player player, Camera camera)
         {
-            int R0 = this.Score / 2;
-            int R1 = player.Score / 2;
+            int R0 = (int)(this.Radius / camera.Scale);
+            int R1 = (int)(player.Radius / camera.Scale);
             int X0 = this.PositionX;
             int X1 = player.PositionX;
             int Y0 = this.PositionY;
@@ -60,26 +60,28 @@ namespace console_agario
         /// Draws the orb to the screen (prolly doesn't work)
         /// </summary>
         /// <param name="screen">Framebuffer</param>
-        public void DrawTo(Box screen, Camera camera, char border)
+        public void DrawTo(Box screen, Camera camera, char border, bool user = false)
         {
-
             float scale = camera.Scale;
             //Our score is the diameter / scale
-            double diameter = Diameter;
-            double radius = Radius;
-            double step = ((diameter * scale) / (5.6d * 2 * Math.PI));
+            //double diameter = Diameter;
+            double radius = Radius / scale;
+            double diameter = radius * 2;
+            //double step = ((diameter * scale) / (5.6d * 2 * Math.PI));
+            //TO-DO find better way to figure out the steps
+            double step = 0.1d;
             double theta = 0.0d;
             double doublePi = 2 * Math.PI;
             //Here's where we need to do some work (fuck)
-            int centerX = (int)Math.Round((PositionX + radius)), centerY = (int)Math.Round((PositionY + radius));
+            int centerX = (int)Math.Round((((PositionX) + radius))), centerY = (int)Math.Round((((PositionY) + (radius))));
 
             int x, y;
             int boundsX = screen.SizeX/* + screen.OffsetX*/, boundsY = screen.SizeY/* + screen.OffsetY*/;
 
             for (theta = 0.0d; theta < doublePi; theta += step)
             {
-                x = (int)Math.Round(centerX + radius * Math.Cos(theta)) - camera.PositionX;
-                y = (int)Math.Round(centerY - radius * Math.Sin(theta)) - camera.PositionY;
+                x = ((int)Math.Round((centerX + radius * Math.Cos(theta))/* * scale*/)) - camera.PositionX;
+                y = ((int)Math.Round((centerY - radius * Math.Sin(theta))/* * scale*/)) - camera.PositionY;
                 if (x < boundsX && y < boundsY && y >= 0 && x >= 0)
                 {
                     screen._framebuffer[screen.Get(x, y)] = border;
@@ -230,10 +232,10 @@ namespace console_agario
         }
         public int PositionX { get => Screen.OffsetX; }
         public int PositionY { get => Screen.OffsetY; }
-        public float AbsoluteMaxX { get => Player.MaxX + Player.Radius; }
-        public float AbsoluteMinX { get => Player.MinX - Player.Radius; }
-        public float AbsoluteMaxY { get => Player.MaxY + Player.Radius; }
-        public float AbsoluteMinY { get => Player.MinY - Player.Radius; }
+        public float AbsoluteMaxX { get => Player.MaxX + (Player.Radius / Scale); }
+        public float AbsoluteMinX { get => Player.MinX - (Player.Radius / Scale); }
+        public float AbsoluteMaxY { get => Player.MaxY + (Player.Radius / Scale); }
+        public float AbsoluteMinY { get => Player.MinY - (Player.Radius / Scale); }
         public float Scale { get => SizeX / Screen.SizeX; }
         //Assuming the player's location is not negative, this should work
         public float MaxX
@@ -289,12 +291,36 @@ namespace console_agario
         }
         public int SizeYAsInt { get => (int)Math.Round(SizeY); }
         public void UpdateView()
-        {            
-            if (AbsoluteMaxX < Map.Size - Screen.SizeX)
+        {     
+            /*
+            if ((Player.MaxX - (MinX * Scale) < Map.Size))
+            {
+                Screen.OffsetX = (int)(MinXAsInt - (MinX * Scale));
+            }
+            if ((Player.MaxY + (Player.Diameter * 2)) < Map.Size)
+            {
+                Screen.OffsetY = (int)(MinYAsInt);
+            }
+            */
+            //If the user is in upper area
+            if (AbsoluteMinX <= 0)
+            {
+                Screen.OffsetX = 0;
+            }
+            //If the user is in middle
+            else
+                if (AbsoluteMinX > 0 && AbsoluteMaxX < Map.Size)
             {
                 Screen.OffsetX = MinXAsInt;
             }
-            if (AbsoluteMaxY < Map.Size - Screen.SizeY)
+            //If the user is in lower area, we don't need to change the offset
+
+            if (AbsoluteMinY <= 0)
+            {
+                Screen.OffsetY = 0;
+            }
+            else
+                if (AbsoluteMinY > 0 && AbsoluteMaxY < Map.Size)
             {
                 Screen.OffsetY = MinYAsInt;
             }
