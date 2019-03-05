@@ -35,6 +35,9 @@
     <LangVersion>7.2</LangVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="olcConsoleGameEngine">
+      <HintPath>C:\Users\Ian\source\repos\olc\x64\Release\olcConsoleGameEngine.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
